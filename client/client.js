@@ -196,14 +196,15 @@ window.__ModuleLoader__.load({
       if (cls === "warn") return "var(--dsw-alias-state-warn-primary, #b45309)"
       return "var(--dsw-alias-state-error-primary, #dc2626)"
     }
-    function formatRemaining(ms) {
+    function formatRemaining(ms, localeId) {
       if (!ms || ms <= 0) return ""
       var totalSec = Math.floor(ms / 1000)
       var days = Math.floor(totalSec / 86400)
       var hours = Math.floor((totalSec % 86400) / 3600)
       var mins = Math.floor((totalSec % 3600) / 60)
-      if (days > 0) return days + "d" + hours + "h"
-      if (hours > 0) return hours + "h" + mins + "m"
+      var sep = localeId === "en" ? " " : ""
+      if (days > 0) return days + "d" + sep + hours + "h"
+      if (hours > 0) return hours + "h" + sep + mins + "m"
       return mins + "m"
     }
 
@@ -245,8 +246,8 @@ window.__ModuleLoader__.load({
       var usageWeek = r.weekly_used_pct
       var cls5h = pctClassByUsage(usage5h)
       var clsWeek = pctClassByUsage(usageWeek)
-      var reset5h = formatRemaining(r.interval_remaining_ms)
-      var resetWeek = formatRemaining(r.weekly_remaining_ms)
+      var reset5h = formatRemaining(r.interval_remaining_ms, localeId)
+      var resetWeek = formatRemaining(r.weekly_remaining_ms, localeId)
       return React.createElement("div", { className: "row" },
         React.createElement("div", { className: "row-name", title: r.name }, displayName),
         React.createElement("div", { className: "row-stats" },
