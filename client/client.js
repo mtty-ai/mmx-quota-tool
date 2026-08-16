@@ -22,6 +22,9 @@ window.__ModuleLoader__.load({
       ".dsh-mmx-quota-dock[data-pending='1'] { opacity: 0.55; }",
       ".dsh-mmx-quota-dock__icon { width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle; }",
       ".dsh-mmx-quota-dock__pct { font-weight:700;color:#fff;font-size:12px;font-variant-numeric:tabular-nums;text-shadow:0 0 2px rgba(0,0,0,0.5);min-width:32px;text-align:left;}",
+      ".dsh-mmx-quota-dock__pct.ok { color:#4ade80; }",
+      ".dsh-mmx-quota-dock__pct.warn { color:#facc15; }",
+      ".dsh-mmx-quota-dock__pct.bad { color:#f87171; }",
       ".dsh-mmx-quota-dock__err { color:#fca5a5;font-size:11px;font-weight:600;}",
       ".dsh-mmx-quota-dock__panel {",
       "  position:absolute; z-index:9999; bottom:100%; left:0; margin-bottom:6px;",
@@ -278,7 +281,7 @@ window.__ModuleLoader__.load({
         title: "点击查看详情 · Shift+点击刷新",
       },
         React.createElement(QuotabarIcon, { pct: usage5h, cls: cls }),
-        React.createElement("span", { className: "dsh-mmx-quota-dock__pct" }, usage5h + "%"),
+        React.createElement("span", { className: "dsh-mmx-quota-dock__pct " + cls }, usage5h + "%"),
         panel,
       )
     }
