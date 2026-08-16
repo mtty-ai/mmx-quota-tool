@@ -67,8 +67,14 @@ within 5 s; the actual upstream fetch runs every `MMX_REFRESH_MS`.
 - The dock is hidden entirely when the active default model is not a MiniMax
   model — matched providers `minimax / minimax-cn / minimax-global / MiniMax*`
   or model prefixes `MiniMax- / minimax-`.
-- Model name labels are translated to Chinese (通用 / 视频 / 图像 / 音频 /
-  语音 / 音乐 / 视觉 / 向量 / 实时 / 长文本).
+- Model name labels follow the active DSH UI locale:
+  - zh: 通用 / 视频 / 图像 / 音频 / 语音 / 音乐 / 视觉 / 向量 / 实时 / 长文本
+  - en: General / Video / Image / Audio / Speech / Music / Vision / Embedding / Realtime / Long context
+- The dock label, panel header / headline / footer hint all switch
+  language when the user changes DSH's interface language.
+- The default is `zh` (Chinese) — the language the upstream token-plan
+  model names resolve to most naturally. If the locale service is
+  unavailable the dock still renders.
 
 ## Architecture
 

@@ -108,22 +108,75 @@ window.__ModuleLoader__.load({
       ".dsh-mmx-quota-dock__panel-footer .hint { font-variant-numeric:tabular-nums; }",
     ].join("\n")
 
-    var MODEL_NAME_ZH = {
-      general: "通用", video: "视频", image: "图像", audio: "音频", speech: "语音",
-      music: "音乐", vision: "视觉", embedding: "向量", realtime: "实时", longcontext: "长文本",
+    var MODEL_NAME = {
+      zh: {
+        general: "通用", video: "视频", image: "图像", audio: "音频", speech: "语音",
+        music: "音乐", vision: "视觉", embedding: "向量", realtime: "实时", longcontext: "长文本",
+        unknown: "未知",
+      },
+      en: {
+        general: "General", video: "Video", image: "Image", audio: "Audio", speech: "Speech",
+        music: "Music", vision: "Vision", embedding: "Embedding", realtime: "Realtime", longcontext: "Long context",
+        unknown: "Unknown",
+      },
     }
-    function modelDisplayName(rawName) {
-      if (!rawName) return "未知"
+    function modelDisplayName(rawName, localeId) {
+      var dict = MODEL_NAME[localeId] || MODEL_NAME.zh
+      if (!rawName) return dict.unknown
       var n = String(rawName).toLowerCase()
       var parts = n.split("/")
       var base = parts[parts.length - 1]
-      if (MODEL_NAME_ZH[base]) return MODEL_NAME_ZH[base]
+      if (dict[base]) return dict[base]
       if (base.indexOf("minimax") >= 0) {
-        for (var k in MODEL_NAME_ZH) {
-          if (base.indexOf(k) >= 0) return MODEL_NAME_ZH[k]
+        for (var k in dict) {
+          if (base.indexOf(k) >= 0) return dict[k]
         }
       }
       return base
+    }
+
+    var STRINGS = {
+      zh: {
+        title: "MiniMax 用量",
+        subtitle: "Token Plan",
+        headline: function (model, pct) { return model + " · " + pct + "% 5h 已用" },
+        headlineDefault: "当前默认模型",
+        usage: "5h 已用",
+        week: "周已用",
+        weeklyLabel: "周",
+        intervalLabel: "5h",
+        resetSuffix: "后",
+        resetNever: "—",
+        updated: "更新",
+        shiftHint: "Shift+点击刷新",
+        loading: "MiniMax 用量 · 加载中",
+        loadErrorPrefix: "MiniMax 用量 · ",
+        loadErrorHint: " · Shift+点击刷新",
+        noData: "未取到",
+        quotaMissing: "mmx-quota-tool: MiniMax API key not found.",
+      },
+      en: {
+        title: "MiniMax usage",
+        subtitle: "Token Plan",
+        headline: function (model, pct) { return model + " · " + pct + "% 5h used" },
+        headlineDefault: "Active default model",
+        usage: "5h used",
+        week: "Weekly",
+        weeklyLabel: "wk",
+        intervalLabel: "5h",
+        resetSuffix: "left",
+        resetNever: "—",
+        updated: "Updated",
+        shiftHint: "Shift+click to refresh",
+        loading: "MiniMax usage · loading",
+        loadErrorPrefix: "MiniMax usage · ",
+        loadErrorHint: " · Shift+click to refresh",
+        noData: "no data",
+        quotaMissing: "mmx-quota-tool: MiniMax API key not found.",
+      },
+    }
+    function getStrings(localeId) {
+      return STRINGS[localeId] || STRINGS.zh
     }
     function pctClassByUsage(pct) {
       if (pct < 50) return "ok"
@@ -181,7 +234,9 @@ window.__ModuleLoader__.load({
 
     function RowDetails(props) {
       var r = props.row
-      var displayName = modelDisplayName(r.name)
+      var localeId = props.localeId
+      var s = getStrings(localeId)
+      var displayName = modelDisplayName(r.name, localeId)
       var usage5h = r.interval_used_pct
       var usageWeek = r.weekly_used_pct
       var cls5h = pctClassByUsage(usage5h)
@@ -192,20 +247,20 @@ window.__ModuleLoader__.load({
         React.createElement("div", { className: "row-name", title: r.name }, displayName),
         React.createElement("div", { className: "row-stats" },
           React.createElement("div", { className: "stat" },
-            React.createElement("span", { className: "stat-label" }, "5h"),
+            React.createElement("span", { className: "stat-label" }, s.intervalLabel),
             React.createElement("span", { className: "bar" },
               React.createElement("span", { style: { width: Math.max(0, Math.min(100, usage5h)) + "%", background: fillColorByClass(cls5h) } }),
             ),
             React.createElement("span", { className: "stat-pct " + cls5h }, usage5h + "%"),
-            React.createElement("span", { className: "stat-reset" }, reset5h ? reset5h + "后" : "—"),
+            React.createElement("span", { className: "stat-reset" }, reset5h ? reset5h + s.resetSuffix : s.resetNever),
           ),
           React.createElement("div", { className: "stat" },
-            React.createElement("span", { className: "stat-label" }, "周"),
+            React.createElement("span", { className: "stat-label" }, s.weeklyLabel),
             React.createElement("span", { className: "bar" },
               React.createElement("span", { style: { width: Math.max(0, Math.min(100, usageWeek)) + "%", background: fillColorByClass(clsWeek) } }),
             ),
             React.createElement("span", { className: "stat-pct " + clsWeek }, usageWeek + "%"),
-            React.createElement("span", { className: "stat-reset" }, resetWeek ? resetWeek + "后" : "—"),
+            React.createElement("span", { className: "stat-reset" }, resetWeek ? resetWeek + s.resetSuffix : s.resetNever),
           ),
         ),
       )
@@ -223,6 +278,8 @@ window.__ModuleLoader__.load({
       var pending = _p[0], setPending = _p[1]
       var _o = _useState(false)
       var open = _o[0], setOpen = _o[1]
+      var _l = _useState(readLocaleId(ctxRef))
+      var localeId = _l[0], setLocaleId = _l[1]
 
       _useEffect(function () {
         if (!cssText) return undefined
@@ -236,6 +293,13 @@ window.__ModuleLoader__.load({
           var n = document.getElementById(id)
           if (n && n.parentNode) n.parentNode.removeChild(n)
         }
+      }, [])
+
+      _useEffect(function () {
+        var dispose = subscribeLocale(ctxRef, function () {
+          setLocaleId(readLocaleId(ctxRef))
+        })
+        return typeof dispose === "function" ? dispose : undefined
       }, [])
 
       function load() {
@@ -272,6 +336,8 @@ window.__ModuleLoader__.load({
 
       if (snapshot && snapshot.isMmx === false) return null
 
+      var s = getStrings(localeId)
+
       function onClick(e) {
         e.preventDefault(); e.stopPropagation()
         if (e.shiftKey) refreshNow()
@@ -291,7 +357,7 @@ window.__ModuleLoader__.load({
           className: "dsh-mmx-quota-dock", onClick: onClick, onKeyDown: onKeyDown, onMouseLeave: onMouseLeave,
           role: "button", tabIndex: 0,
           "data-pending": pending ? "1" : "0",
-          title: "MiniMax 用量 · 加载中",
+          title: s.loading,
         },
           React.createElement(QuotabarIcon, { pct: 0, cls: "ok" }),
         )
@@ -303,7 +369,7 @@ window.__ModuleLoader__.load({
           className: "dsh-mmx-quota-dock", onClick: onClick, onKeyDown: onKeyDown, onMouseLeave: onMouseLeave,
           role: "button", tabIndex: 0,
           "data-pending": pending ? "1" : "0",
-          title: "MiniMax 用量 · " + (snapshot.lastError || "未取到") + " · Shift+点击刷新",
+          title: s.loadErrorPrefix + (snapshot.lastError || s.noData) + s.loadErrorHint,
         },
           React.createElement(QuotabarIcon, { pct: 0, cls: "bad" }),
           React.createElement("span", { className: "dsh-mmx-quota-dock__err" }, "!"),
@@ -319,21 +385,23 @@ window.__ModuleLoader__.load({
       var panel = open ? React.createElement("div", {
         className: "dsh-mmx-quota-dock__panel",
         role: "dialog",
-        "aria-label": "MiniMax Token Plan 用量详情",
+        "aria-label": s.title,
         onClick: function (e) { e.stopPropagation() },
         onMouseDown: function (e) { e.stopPropagation() },
         onMouseLeave: onPanelMouseLeave,
       },
         React.createElement("div", { className: "dsh-mmx-quota-dock__panel-header" },
-          React.createElement("span", null, "MiniMax 用量"),
-          React.createElement("span", { className: "dsh-mmx-quota-dock__panel-header-meta" }, "Token Plan · " + rows.length + " 个模型"),
+          React.createElement("span", null, s.title),
+          React.createElement("span", { className: "dsh-mmx-quota-dock__panel-header-meta" },
+            s.subtitle + " · " + rows.length + (localeId === "zh" ? " 个模型" : " models"),
+          ),
         ),
         React.createElement("div", { className: "dsh-mmx-quota-dock__panel-headline" },
-          snapshot.model ? (snapshot.model.model + " · " + usage5h + "% 5h 已用") : "当前默认模型",
+          snapshot.model ? s.headline(snapshot.model.model, usage5h) : s.headlineDefault,
         ),
         React.createElement("div", { className: "dsh-mmx-quota-dock__panel-list" },
           rows.map(function (r, idx) {
-            return React.createElement(RowDetails, { key: r.name + ":" + idx, row: r })
+            return React.createElement(RowDetails, { key: r.name + ":" + idx, row: r, localeId: localeId })
           }),
         ),
         snapshot.lastError ? React.createElement("div", { className: "row-warn" },
@@ -341,9 +409,9 @@ window.__ModuleLoader__.load({
         ) : null,
         React.createElement("div", { className: "dsh-mmx-quota-dock__panel-footer" },
           React.createElement("span", { className: "hint" },
-            snapshot.lastFetchedAt ? "更新 " + new Date(snapshot.lastFetchedAt).toLocaleTimeString() : "—",
+            snapshot.lastFetchedAt ? s.updated + " " + new Date(snapshot.lastFetchedAt).toLocaleTimeString() : "—",
           ),
-          React.createElement("span", { className: "hint" }, "Shift+点击刷新"),
+          React.createElement("span", { className: "hint" }, s.shiftHint),
         ),
       ) : null
 
@@ -351,7 +419,7 @@ window.__ModuleLoader__.load({
         className: "dsh-mmx-quota-dock", onClick: onClick, onKeyDown: onKeyDown, onMouseLeave: onMouseLeave,
         role: "button", tabIndex: 0,
         "data-pending": pending ? "1" : "0",
-        title: "点击查看详情 · Shift+点击刷新",
+        title: s.shiftHint,
       },
         React.createElement(QuotabarIcon, { pct: usage5h, cls: cls }),
         React.createElement("span", { className: "dsh-mmx-quota-dock__pct " + cls }, usage5h + "%"),
@@ -359,10 +427,29 @@ window.__ModuleLoader__.load({
       )
     }
 
+    function readLocaleId(ctxRef) {
+      if (!ctxRef || typeof ctxRef.get !== "function") return "zh"
+      var locale = ctxRef.get("locale")
+      if (!locale || typeof locale.getLocale !== "function") return "zh"
+      try {
+        var snap = locale.getLocale()
+        var id = snap && snap.active ? snap.active : (snap && snap.id)
+        return (id === "en" || id === "zh") ? id : "zh"
+      } catch (e) { return "zh" }
+    }
+
+    function subscribeLocale(ctxRef, fn) {
+      if (!ctxRef || typeof ctxRef.on !== "function") return undefined
+      try {
+        return ctxRef.on("locale/change", function () { fn() })
+      } catch (e) { return undefined }
+    }
+
     function apply(ctx) {
       ctx.slots.inject("conversation.input.left", function () {
+        var initialLocale = readLocaleId(ctx)
         ctx.slots.register(
-          { name: "conversation.input.left", id: "mmx-quota", order: 100, label: "MiniMax 剩余配额" },
+          { name: "conversation.input.left", id: "mmx-quota", order: 100, label: getStrings(initialLocale).title },
           function (props) {
             return React.createElement(QuotaIcon, {
               ctxRef: ctx,
