@@ -15,26 +15,30 @@ window.__ModuleLoader__.load({
       "  font: 12px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;",
       "  color: var(--dsw-alias-label-primary, #1f2328); padding: 3px 8px;",
       "  white-space: nowrap; cursor: pointer; user-select: none;",
-      "  border-radius: 8px; border: 1px solid var(--dsw-alias-border-l1, #e5e7eb);",
-      "  background: var(--dsw-alias-bg-layer-1, rgba(255,255,255,0.6));",
+      "  border-radius: 8px; border: 1px solid var(--dsw-alias-border-l2, rgba(0,0,0,0.12));",
+      "  background: var(--dsw-alias-bg-layer-2, rgba(255,255,255,0.6));",
       "  position: relative; z-index: 4; transition: background-color 0.15s ease;",
       "}",
-      ".dsh-mmx-quota-dock:hover { background: var(--dsw-alias-bg-layer-2, rgba(0,0,0,0.05)); border-color: var(--dsw-alias-border-l2, #d9dde3); }",
+      ".dsh-mmx-quota-dock:hover { background: var(--dsw-alias-bg-layer-3, rgba(0,0,0,0.05)); border-color: var(--dsw-alias-border-l3, rgba(0,0,0,0.16)); }",
+      "body[data-ds-dark-theme] .dsh-mmx-quota-dock { border-color:rgba(255,255,255,0.18); }",
+      "body[data-ds-dark-theme] .dsh-mmx-quota-dock:hover { border-color:rgba(255,255,255,0.28); }",
       ".dsh-mmx-quota-dock[data-pending='1'] { opacity: 0.55; }",
       ".dsh-mmx-quota-dock__icon { width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle; color:var(--dsw-alias-state-success-primary,#16a34a); }",
       ".dsh-mmx-quota-dock__icon--ok   { color:var(--dsw-alias-state-success-primary,#16a34a); }",
       ".dsh-mmx-quota-dock__icon--warn { color:var(--dsw-alias-state-warn-primary,#b45309); }",
       ".dsh-mmx-quota-dock__icon--bad  { color:var(--dsw-alias-state-error-primary,#dc2626); }",
-      ".dsh-mmx-quota-dock__icon-body { fill:color-mix(in srgb, currentColor 18%, transparent); stroke:currentColor; stroke-width:1.2; }",
+      ".dsh-mmx-quota-dock__icon-body { fill:color-mix(in srgb, currentColor 22%, transparent); stroke:currentColor; stroke-width:1.4; }",
+      "body[data-ds-dark-theme] .dsh-mmx-quota-dock__icon-body { fill:color-mix(in srgb, currentColor 32%, transparent); stroke-width:1.5; }",
       ".dsh-mmx-quota-dock__icon-fill { fill:currentColor; }",
       ".dsh-mmx-quota-dock__pct { font-weight:700;font-size:12px;font-variant-numeric:tabular-nums;min-width:32px;text-align:left;}",
       ".dsh-mmx-quota-dock__pct.ok   { color:var(--dsw-alias-state-success-primary,#16a34a); }",
       ".dsh-mmx-quota-dock__pct.warn { color:var(--dsw-alias-state-warn-primary,#b45309); }",
       ".dsh-mmx-quota-dock__pct.bad  { color:var(--dsw-alias-state-error-primary,#dc2626); }",
-      ".dsh-mmx-quota-dock__err { color:#fca5a5;font-size:11px;font-weight:600;}",
+      ".dsh-mmx-quota-dock__err { color:#dc2626;font-size:11px;font-weight:600;}",
+      "body[data-ds-dark-theme] .dsh-mmx-quota-dock__err { color:#f87171; }",
       ".dsh-mmx-quota-dock__panel {",
       "  z-index:100; box-sizing:border-box;",
-      "  border:1px solid var(--dsw-alias-border-inverted, rgba(0,0,0,0.12));",
+      "  border:1px solid var(--dsw-alias-border-l2, rgba(0,0,0,0.12));",
       "  background:var(--dsw-specific-menu, var(--dsw-alias-bg-overlay, #ffffff));",
       "  width:264px; max-width:92vw; max-height:80vh; overflow:auto;",
       "  box-shadow:var(--dsw-shadow-lv3, 0 8px 24px rgba(0,0,0,0.12));",
@@ -43,6 +47,7 @@ window.__ModuleLoader__.load({
       "  position:absolute; bottom:calc(100% + 8px); left:0;",
       "  pointer-events:auto; user-select:text;",
       "}",
+      "body[data-ds-dark-theme] .dsh-mmx-quota-dock__panel { border-color:rgba(255,255,255,0.16); }",
       ".dsh-mmx-quota-dock__panel-header {",
       "  display:flex; align-items:center; gap:6px;",
       "  font-weight:500; color:var(--dsw-alias-label-primary, #1f2328);",
@@ -89,10 +94,11 @@ window.__ModuleLoader__.load({
       "}",
       ".dsh-mmx-quota-dock__panel .row-warn {",
       "  margin-top:8px; padding:6px 8px;",
-      "  color:var(--dsw-alias-state-error-primary, #dc2626); font-size:11px; line-height:16px;",
-      "  background:var(--dsw-alias-bg-layer-2, rgba(220,38,38,0.06));",
+      "  color:#dc2626; font-size:11px; line-height:16px;",
+      "  background:rgba(220,38,38,0.08);",
       "  border-radius:6px;",
       "}",
+      "body[data-ds-dark-theme] .dsh-mmx-quota-dock__panel .row-warn { color:#f87171; background:rgba(248,113,113,0.15); }",
       ".dsh-mmx-quota-dock__panel-footer {",
       "  margin-top:10px; padding-top:8px;",
       "  border-top:1px solid var(--dsw-alias-border-l2, #e5e7eb);",
@@ -111,10 +117,10 @@ window.__ModuleLoader__.load({
       var n = String(rawName).toLowerCase()
       var parts = n.split("/")
       var base = parts[parts.length - 1]
-      if (MODEL_NAME_ZH[base]) return MODEL_NAME_ZH[base] + "（" + base + "）"
+      if (MODEL_NAME_ZH[base]) return MODEL_NAME_ZH[base]
       if (base.indexOf("minimax") >= 0) {
         for (var k in MODEL_NAME_ZH) {
-          if (base.indexOf(k) >= 0) return MODEL_NAME_ZH[k] + "（" + k + "）"
+          if (base.indexOf(k) >= 0) return MODEL_NAME_ZH[k]
         }
       }
       return base
