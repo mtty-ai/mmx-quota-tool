@@ -246,8 +246,10 @@ window.__ModuleLoader__.load({
       // Real HTML <tr><td> so the browser's table algorithm aligns
       // all rows' columns naturally. Each model occupies two body
       // rows: the first carries the 5h stat, the second the wk
-      // stat, and the name <td> spans both via rowSpan=2.
-      return React.createElement("tr", { className: "row" },
+      // stat, and the name <td> spans both via rowSpan=2. Return an
+      // array of two <tr>s so React renders both siblings under
+      // <tbody>; one <tr> with 7 tds would silently drop the wk row.
+      var row1 = React.createElement("tr", { className: "row" },
         React.createElement("td", { className: "row-name", rowSpan: 2, title: r.name }, displayName),
         React.createElement("td", { className: "stat-label" }, s.intervalLabel),
         React.createElement("td", { className: "bar-cell" },
@@ -257,6 +259,8 @@ window.__ModuleLoader__.load({
           React.createElement("span", { className: "stat-pct " + cls5h }, usage5h + "%"),
         ),
         React.createElement("td", { className: "stat-reset" }, reset5h ? reset5h + " " + s.resetSuffix : s.resetNever),
+      )
+      var row2 = React.createElement("tr", { className: "row" },
         React.createElement("td", { className: "stat-label" }, s.weeklyLabel),
         React.createElement("td", { className: "bar-cell" },
           React.createElement("div", { className: "bar" },
@@ -266,6 +270,7 @@ window.__ModuleLoader__.load({
         ),
         React.createElement("td", { className: "stat-reset" }, resetWeek ? resetWeek + " " + s.resetSuffix : s.resetNever),
       )
+      return [row1, row2]
     }
 
     function QuotaIcon(props) {
