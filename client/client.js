@@ -13,18 +13,24 @@ window.__ModuleLoader__.load({
       ".dsh-mmx-quota-dock {",
       "  display: inline-flex; align-items: center; gap: 6px;",
       "  font: 12px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;",
-      "  color: rgba(230,230,240,0.95); padding: 3px 8px;",
+      "  color: var(--dsw-alias-label-primary, #1f2328); padding: 3px 8px;",
       "  white-space: nowrap; cursor: pointer; user-select: none;",
-      "  border-radius: 8px; border: 1px solid rgba(255,255,255,0.18);",
-      "  background: rgba(40,40,48,0.55); position: relative; z-index: 4;",
+      "  border-radius: 8px; border: 1px solid var(--dsw-alias-border-l1, #e5e7eb);",
+      "  background: var(--dsw-alias-bg-layer-1, rgba(255,255,255,0.6));",
+      "  position: relative; z-index: 4; transition: background-color 0.15s ease;",
       "}",
-      ".dsh-mmx-quota-dock:hover { background: rgba(60,60,72,0.75); }",
+      ".dsh-mmx-quota-dock:hover { background: var(--dsw-alias-bg-layer-2, rgba(0,0,0,0.05)); border-color: var(--dsw-alias-border-l2, #d9dde3); }",
       ".dsh-mmx-quota-dock[data-pending='1'] { opacity: 0.55; }",
-      ".dsh-mmx-quota-dock__icon { width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle; }",
+      ".dsh-mmx-quota-dock__icon { width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle; color:var(--dsw-alias-state-success-primary,#16a34a); }",
+      ".dsh-mmx-quota-dock__icon--ok   { color:var(--dsw-alias-state-success-primary,#16a34a); }",
+      ".dsh-mmx-quota-dock__icon--warn { color:var(--dsw-alias-state-warn-primary,#b45309); }",
+      ".dsh-mmx-quota-dock__icon--bad  { color:var(--dsw-alias-state-error-primary,#dc2626); }",
+      ".dsh-mmx-quota-dock__icon-body { fill:color-mix(in srgb, currentColor 18%, transparent); stroke:currentColor; stroke-width:1.2; }",
+      ".dsh-mmx-quota-dock__icon-fill { fill:currentColor; }",
       ".dsh-mmx-quota-dock__pct { font-weight:700;color:#fff;font-size:12px;font-variant-numeric:tabular-nums;text-shadow:0 0 2px rgba(0,0,0,0.5);min-width:32px;text-align:left;}",
-      ".dsh-mmx-quota-dock__pct.ok { color:#4ade80; }",
-      ".dsh-mmx-quota-dock__pct.warn { color:#facc15; }",
-      ".dsh-mmx-quota-dock__pct.bad { color:#f87171; }",
+      ".dsh-mmx-quota-dock__pct.ok   { color:var(--dsw-alias-state-success-primary,#16a34a); }",
+      ".dsh-mmx-quota-dock__pct.warn { color:var(--dsw-alias-state-warn-primary,#b45309); }",
+      ".dsh-mmx-quota-dock__pct.bad  { color:var(--dsw-alias-state-error-primary,#dc2626); }",
       ".dsh-mmx-quota-dock__err { color:#fca5a5;font-size:11px;font-weight:600;}",
       ".dsh-mmx-quota-dock__panel {",
       "  position:absolute; z-index:9999; bottom:100%; left:0; margin-bottom:6px;",
@@ -74,9 +80,13 @@ window.__ModuleLoader__.load({
       return "bad"
     }
     function fillColorByClass(cls) {
-      if (cls === "ok") return "#22c55e"
-      if (cls === "warn") return "#eab308"
-      return "#ef4444"
+      // Reference the DSH design-system state colors so the chip adapts to
+      // light/dark/auto themes. Variables are defined on :root by the dsh
+      // shell; if absent we fall back to bright green so the dock is
+      // always legible.
+      if (cls === "ok") return "var(--dsw-alias-state-success-primary, #16a34a)"
+      if (cls === "warn") return "var(--dsw-alias-state-warn-primary, #b45309)"
+      return "var(--dsw-alias-state-error-primary, #dc2626)"
     }
     function formatRemaining(ms) {
       if (!ms || ms <= 0) return ""
@@ -92,45 +102,30 @@ window.__ModuleLoader__.load({
     function QuotabarIcon(props) {
       var pct = props.pct
       var cls = props.cls || "ok"
-      var fillColor = fillColorByClass(cls)
-      // Three-stop fill: empty (low alpha) at the top → solid at the bottom,
-      // so the drop shape itself always reads as the usage color rather
-      // than as a near-white outline.
       var safe = Math.max(0, Math.min(100, pct))
-      var alpha = 0.18 + (safe / 100) * 0.55
-      var baseColor = fillColor
-      var bgColor = hexToRgba(baseColor, alpha)
-      var solidColor = hexToRgba(baseColor, 0.95)
       var fillH = Math.round((safe / 100) * 13)
+      // The whole icon uses currentColor, which the dock element sets via
+      // .ok / .warn / .bad → state-success / state-warn / state-error CSS
+      // variables. No JS-computed colors: theme switches just work.
       return React.createElement("svg", {
-        className: "dsh-mmx-quota-dock__icon",
+        className: "dsh-mmx-quota-dock__icon dsh-mmx-quota-dock__icon--" + cls,
         width: 16, height: 16, viewBox: "0 0 18 18",
         xmlns: "http://www.w3.org/2000/svg",
         "aria-label": "MiniMax 5h usage",
       },
         React.createElement("path", {
+          className: "dsh-mmx-quota-dock__icon-body",
           d: "M9 1 C 9 1, 4 7, 4 11.5 A 5 5 0 0 0 14 11.5 C 14 7, 9 1, 9 1 Z",
-          fill: bgColor,
-          stroke: solidColor,
-          "stroke-width": "1.2",
         }),
         React.createElement("clipPath", { id: "mmxqt-drop-clip-nm" },
           React.createElement("path", { d: "M9 1 C 9 1, 4 7, 4 11.5 A 5 5 0 0 0 14 11.5 C 14 7, 9 1, 9 1 Z" }),
         ),
         React.createElement("rect", {
+          className: "dsh-mmx-quota-dock__icon-fill",
           x: 0, y: 16 - fillH, width: 18, height: fillH + 1,
-          fill: solidColor, "clip-path": "url(#mmxqt-drop-clip-nm)",
+          "clip-path": "url(#mmxqt-drop-clip-nm)",
         }),
       )
-    }
-
-    function hexToRgba(hex, alpha) {
-      var h = String(hex).replace("#", "")
-      if (h.length === 3) h = h.split("").map(function (c) { return c + c }).join("")
-      var r = parseInt(h.slice(0, 2), 16)
-      var g = parseInt(h.slice(2, 4), 16)
-      var b = parseInt(h.slice(4, 6), 16)
-      return "rgba(" + r + "," + g + "," + b + "," + alpha + ")"
     }
 
     function RowDetails(props) {
