@@ -252,7 +252,7 @@ window.__ModuleLoader__.load({
               React.createElement("span", { style: { width: Math.max(0, Math.min(100, usage5h)) + "%", background: fillColorByClass(cls5h) } }),
             ),
             React.createElement("span", { className: "stat-pct " + cls5h }, usage5h + "%"),
-            React.createElement("span", { className: "stat-reset" }, reset5h ? reset5h + s.resetSuffix : s.resetNever),
+            React.createElement("span", { className: "stat-reset" }, reset5h ? reset5h + " " + s.resetSuffix : s.resetNever),
           ),
           React.createElement("div", { className: "stat" },
             React.createElement("span", { className: "stat-label" }, s.weeklyLabel),
@@ -260,7 +260,7 @@ window.__ModuleLoader__.load({
               React.createElement("span", { style: { width: Math.max(0, Math.min(100, usageWeek)) + "%", background: fillColorByClass(clsWeek) } }),
             ),
             React.createElement("span", { className: "stat-pct " + clsWeek }, usageWeek + "%"),
-            React.createElement("span", { className: "stat-reset" }, resetWeek ? resetWeek + s.resetSuffix : s.resetNever),
+            React.createElement("span", { className: "stat-reset" }, resetWeek ? resetWeek + " " + s.resetSuffix : s.resetNever),
           ),
         ),
       )
