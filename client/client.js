@@ -93,9 +93,15 @@ window.__ModuleLoader__.load({
       var pct = props.pct
       var cls = props.cls || "ok"
       var fillColor = fillColorByClass(cls)
-      var bgColor = "rgba(255,255,255,0.06)"
+      // Three-stop fill: empty (low alpha) at the top → solid at the bottom,
+      // so the drop shape itself always reads as the usage color rather
+      // than as a near-white outline.
       var safe = Math.max(0, Math.min(100, pct))
-      var fillH = Math.round((safe / 100) * 14)
+      var alpha = 0.18 + (safe / 100) * 0.55
+      var baseColor = fillColor
+      var bgColor = hexToRgba(baseColor, alpha)
+      var solidColor = hexToRgba(baseColor, 0.95)
+      var fillH = Math.round((safe / 100) * 13)
       return React.createElement("svg", {
         className: "dsh-mmx-quota-dock__icon",
         width: 16, height: 16, viewBox: "0 0 18 18",
@@ -105,17 +111,26 @@ window.__ModuleLoader__.load({
         React.createElement("path", {
           d: "M9 1 C 9 1, 4 7, 4 11.5 A 5 5 0 0 0 14 11.5 C 14 7, 9 1, 9 1 Z",
           fill: bgColor,
-          stroke: "rgba(255,255,255,0.35)",
+          stroke: solidColor,
           "stroke-width": "1.2",
         }),
         React.createElement("clipPath", { id: "mmxqt-drop-clip-nm" },
           React.createElement("path", { d: "M9 1 C 9 1, 4 7, 4 11.5 A 5 5 0 0 0 14 11.5 C 14 7, 9 1, 9 1 Z" }),
         ),
         React.createElement("rect", {
-          x: 0, y: 17 - fillH, width: 18, height: fillH,
-          fill: fillColor, "clip-path": "url(#mmxqt-drop-clip-nm)",
+          x: 0, y: 16 - fillH, width: 18, height: fillH + 1,
+          fill: solidColor, "clip-path": "url(#mmxqt-drop-clip-nm)",
         }),
       )
+    }
+
+    function hexToRgba(hex, alpha) {
+      var h = String(hex).replace("#", "")
+      if (h.length === 3) h = h.split("").map(function (c) { return c + c }).join("")
+      var r = parseInt(h.slice(0, 2), 16)
+      var g = parseInt(h.slice(2, 4), 16)
+      var b = parseInt(h.slice(4, 6), 16)
+      return "rgba(" + r + "," + g + "," + b + "," + alpha + ")"
     }
 
     function RowDetails(props) {
