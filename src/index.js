@@ -32,12 +32,46 @@ const CWD = os.homedir()
 const REFRESH_INTERVAL_MS = Number(process.env.MMX_REFRESH_MS) || 60_000
 const SUBPROCESS_GRACE_MS = 12_000
 
-function getApiKey() {
-  const key = process.env.MMX_API_KEY
-  if (!key || typeof key !== 'string' || key.length < 8) {
-    throw new Error('mmx-quota-tool: MMX_API_KEY env var is required; export MMX_API_KEY=<your key> before launching dsh web')
+// Credential reference names we will try, in order. The first one resolved
+// by the profile's credentials service wins. Adjust this list to match the
+// keys already present in `~/.dsh/.credentials.yaml` for your MiniMax
+// provider (e.g. `MINIMAX_CN_API_KEY` for `provider: minimax-cn`,
+// `MINIMAX_GLOBAL_API_KEY` for `provider: minimax-global`).
+const CREDENTIAL_REFS = ['MINIMAX_API_KEY', 'MINIMAX_CN_API_KEY', 'MINIMAX_GLOBAL_API_KEY', 'MINIMAX_KEY']
+
+async function resolveCredentials(credentials) {
+  if (!credentials || typeof credentials.resolve !== 'function') return null
+  for (const ref of CREDENTIAL_REFS) {
+    try {
+      const resolved = await credentials.resolve(ref)
+      const value = resolved && typeof resolved === 'object' ? resolved.value : resolved
+      if (value && typeof value === 'string' && value.length >= 8) {
+        return { key: value, ref }
+      }
+    } catch (e) {
+      // continue to next ref
+    }
   }
-  return key
+  return null
+}
+
+async function getApiKey(credentials) {
+  // Prefer the profile's credentials service (resolves from
+  // ~/.dsh/.credentials.yaml + inherited env, with credentials/updated
+  // notifications for live reloads).
+  const fromCreds = await resolveCredentials(credentials)
+  if (fromCreds) return fromCreds.key
+
+  // Manual override for users who do not want their key in
+  // ~/.dsh/.credentials.yaml.
+  const fallback = process.env.MMX_API_KEY
+  if (fallback && typeof fallback === 'string' && fallback.length >= 8) return fallback
+
+  throw new Error(
+    'mmx-quota-tool: MiniMax API key not found. Add one of these to ~/.dsh/.credentials.yaml:\n' +
+      CREDENTIAL_REFS.map(r => '  ' + r + ': <your key>').join('\n') +
+      '\n…or set MMX_API_KEY in the environment before launching dsh web.'
+  )
 }
 
 const decoder = new TextDecoder('utf-8')
@@ -108,7 +142,7 @@ async function fetchQuota() {
   // Use the file-system subprocess we keep on a closure map keyed by ctx.
   const sub2 = currentSubprocess()
   if (!sub2 || typeof sub2.spawn !== 'function') throw new Error('subprocess service unavailable')
-  const key = getApiKey()
+  const key = await getApiKey(hostCtxGlobal && hostCtxGlobal.credentials)
   const argv = [
     CURL_PATH, '-sS', '-i',
     '-H', 'Authorization: Bearer ' + key,
@@ -220,7 +254,7 @@ function writeJson(res, status, body) {
   res.end(JSON.stringify(body))
 }
 
-export const inject = ['webServer', 'timer', 'subprocess', 'agentDefaultModel']
+export const inject = ['webServer', 'timer', 'subprocess', 'agentDefaultModel', 'credentials']
 
 export function apply(ctx) {
   hostCtxGlobal = ctx
